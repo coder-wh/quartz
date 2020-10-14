@@ -319,6 +319,7 @@ public class QuartzSchedulerThread extends Thread {
                         now = System.currentTimeMillis();
                         long triggerTime = triggers.get(0).getNextFireTime().getTime();
                         long timeUntilTrigger = triggerTime - now;
+                        //再等待任务时间到达的过程中 scheduler状态发生变化  是否应该重新选择待执行的任务
                         while(timeUntilTrigger > 2) {
                             synchronized (sigLock) {
                                 if (halted.get()) {
@@ -356,7 +357,7 @@ public class QuartzSchedulerThread extends Thread {
                         }
                         if(goAhead) {
                             try {
-                                //通知jobstore 调度将将要执行获取到的trigger对应的任务, 并将trigger对应的job包装为TriggerFiredResult
+                                //通知jobstore 调度器将要执行获取到的trigger, 并获取对应的任务, 将trigger对应的job包装为TriggerFiredResult
                                 List<TriggerFiredResult> res = qsRsrcs.getJobStore().triggersFired(triggers);
                                 if(res != null)
                                     bndles = res;
@@ -481,6 +482,7 @@ public class QuartzSchedulerThread extends Thread {
             for (OperableTrigger trigger : triggers) {
                 qsRsrcs.getJobStore().releaseAcquiredTrigger(trigger);
             }
+            //清空已获得的列表  进去外层循环的下一次loop
             triggers.clear();
             return true;
         }
