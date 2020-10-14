@@ -3853,7 +3853,7 @@ public abstract class JobStoreSupport implements JobStore, Constants {
                 if (getLockHandler().requiresConnection()) {
                     conn = getNonManagedTXConnection();
                 }
-                
+                //尝试获取数据库锁  如果没有抛异常说明获取锁成功
                 transOwner = getLockHandler().obtainLock(conn, lockName);
             }
             

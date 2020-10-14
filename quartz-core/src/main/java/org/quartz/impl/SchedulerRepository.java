@@ -42,6 +42,7 @@ public class SchedulerRepository {
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      */
 
+    //hashmap  key=调度器名称  value=调度器
     private HashMap<String, Scheduler> schedulers;
 
     private static SchedulerRepository inst;

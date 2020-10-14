@@ -212,6 +212,7 @@ public class QuartzScheduler implements RemotableQuartzScheduler {
             addInternalJobListener((JobListener)resources.getJobStore());
         }
 
+        //创建一个最终执行调度的线程
         this.schedThread = new QuartzSchedulerThread(this, resources);
         ThreadExecutor schedThreadExecutor = resources.getThreadExecutor();
         schedThreadExecutor.execute(this.schedThread);
@@ -852,6 +853,7 @@ public class QuartzScheduler implements RemotableQuartzScheduler {
                     "Based on configured schedule, the given trigger '" + trigger.getKey() + "' will never fire.");
         }
 
+        //存储job 和 trigger
         resources.getJobStore().storeJobAndTrigger(jobDetail, trig);
         notifySchedulerListenersJobAdded(jobDetail);
         notifySchedulerThread(trigger.getNextFireTime().getTime());

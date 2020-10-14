@@ -233,6 +233,7 @@ public class SimpleThreadPool implements ThreadPool {
         schedulerInstanceName = schedName;
     }
 
+    //初始化线程池
     public void initialize() throws SchedulerConfigException {
 
         if(workers != null && workers.size() > 0) // already initialized...
@@ -274,6 +275,7 @@ public class SimpleThreadPool implements ThreadPool {
         Iterator<WorkerThread> workerThreads = createWorkerThreads(count).iterator();
         while(workerThreads.hasNext()) {
             WorkerThread wt = workerThreads.next();
+            //启动线程
             wt.start();
             availWorkers.add(wt);
         }
@@ -495,8 +497,10 @@ public class SimpleThreadPool implements ThreadPool {
         // A flag that signals the WorkerThread to terminate.
         private AtomicBoolean run = new AtomicBoolean(true);
 
+        //最终执行任务的线程池
         private SimpleThreadPool tp;
 
+        //将要运行的任务
         private Runnable runnable = null;
         
         private boolean runOnce = false;
@@ -570,6 +574,7 @@ public class SimpleThreadPool implements ThreadPool {
 
                         if (runnable != null) {
                             ran = true;
+                            //执行任务
                             runnable.run();
                         }
                     }

@@ -383,7 +383,9 @@ public class StdSchedulerFactory implements SchedulerFactory {
             throw initException;
         }
 
+        //获取配置的文件路径
         String requestedFile = System.getProperty(PROPERTIES_FILE);
+        //若无配置取默认文件名
         String propFileName = requestedFile != null ? requestedFile
                 : "quartz.properties";
         File propFile = new File(propFileName);
@@ -393,6 +395,7 @@ public class StdSchedulerFactory implements SchedulerFactory {
         InputStream in = null;
 
         try {
+            //尝试获取配置的配置文件路径
             if (propFile.exists()) {
                 try {
                     if (requestedFile != null) {
@@ -409,6 +412,7 @@ public class StdSchedulerFactory implements SchedulerFactory {
                             + propFileName + "' could not be read.", ioe);
                     throw initException;
                 }
+                //尝试从工作目录获取配置文件
             } else if (requestedFile != null) {
                 in =
                     Thread.currentThread().getContextClassLoader().getResourceAsStream(requestedFile);
@@ -430,6 +434,7 @@ public class StdSchedulerFactory implements SchedulerFactory {
                     throw initException;
                 }
 
+                //获取jar包内默认的配置文件
             } else {
                 propSrc = "default resource file in Quartz package: 'quartz.properties'";
 
@@ -470,6 +475,7 @@ public class StdSchedulerFactory implements SchedulerFactory {
             }
         }
 
+        //加载配置
         initialize(overrideWithSysProps(props, getLog()));
     }
 
@@ -606,6 +612,11 @@ public class StdSchedulerFactory implements SchedulerFactory {
         this.cfg = new PropertiesParser(props);
     }
 
+    /**
+     * 初始化生成一个调度器
+     * @return
+     * @throws SchedulerException
+     */
     private Scheduler instantiate() throws SchedulerException {
         if (cfg == null) {
             initialize();
@@ -848,6 +859,7 @@ public class StdSchedulerFactory implements SchedulerFactory {
         }
 
         try {
+            //加载线程池
             tp = (ThreadPool) loadHelper.loadClass(tpClass).newInstance();
         } catch (Exception e) {
             initException = new SchedulerException("ThreadPool class '"
@@ -856,6 +868,7 @@ public class StdSchedulerFactory implements SchedulerFactory {
         }
         tProps = cfg.getPropertyGroup(PROP_THREAD_POOL_PREFIX, true);
         try {
+            //为创建的线程池实例设置配置文件中的属性值
             setBeanProps(tp, tProps);
         } catch (Exception e) {
             initException = new SchedulerException("ThreadPool class '"
@@ -876,6 +889,7 @@ public class StdSchedulerFactory implements SchedulerFactory {
         }
 
         try {
+            //获取配置的job存储器  默认存储器为RAMJobStore
             js = (JobStore) loadHelper.loadClass(jsClass).newInstance();
         } catch (Exception e) {
             initException = new SchedulerException("JobStore class '" + jsClass
@@ -1543,6 +1557,10 @@ public class StdSchedulerFactory implements SchedulerFactory {
         return Thread.currentThread().getContextClassLoader();
     }
 
+    /**
+     * 从配置文件中获取调度器的名称
+     * @return
+     */
     private String getSchedulerName() {
         return cfg.getStringProperty(PROP_SCHED_INSTANCE_NAME,
                 "QuartzScheduler");
@@ -1561,14 +1579,17 @@ public class StdSchedulerFactory implements SchedulerFactory {
      */
     public Scheduler getScheduler() throws SchedulerException {
         if (cfg == null) {
+            //解析配置文件
             initialize();
         }
 
         SchedulerRepository schedRep = SchedulerRepository.getInstance();
 
+        //查找是否已经存在同名的调度器
         Scheduler sched = schedRep.lookup(getSchedulerName());
 
         if (sched != null) {
+            //校验调度器是否可用
             if (sched.isShutdown()) {
                 schedRep.remove(getSchedulerName());
             } else {
@@ -1576,6 +1597,7 @@ public class StdSchedulerFactory implements SchedulerFactory {
             }
         }
 
+        //若无可用调度器  则初始化一个调度器
         sched = instantiate();
 
         return sched;
