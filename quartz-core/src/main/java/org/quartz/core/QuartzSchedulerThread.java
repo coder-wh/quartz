@@ -247,10 +247,12 @@ public class QuartzSchedulerThread extends Thread {
     public void run() {
         int acquiresFailed = 0;
 
+        // 检查 scheuler 是否为停止状态
         while (!halted.get()) {
             try {
                 // check if we're supposed to pause...
                 synchronized (sigLock) {
+                    // 检查是否为暂停状态
                     while (paused && !halted.get()) {
                         try {
                             // wait until togglePause(false) is called...
@@ -270,6 +272,7 @@ public class QuartzSchedulerThread extends Thread {
 
                 // wait a bit, if reading from job store is consistently
                 // failing (e.g. DB is down or restarting)..
+                // 从 JobStore 获取 Job 持续失败，sleep 一下
                 if (acquiresFailed > 1) {
                     try {
                         long delay = computeDelayForRepeatedErrors(qsRsrcs.getJobStore(), acquiresFailed);
@@ -290,6 +293,15 @@ public class QuartzSchedulerThread extends Thread {
                     clearSignaledSchedulingChange();
                     try {
                         //获取下一个时间窗口内得trigger触发器
+                        // 获取需要下次执行的 triggers
+                        // idleWaitTime： 默认 30s
+                        // availThreadCount：获取可用（空闲）的工作线程数量，总会大于 1，因为该方法会一直阻塞，直到有工作线程空闲下来。
+                        // maxBatchSize：一次拉取 trigger 的最大数量，默认是 1
+                        // batchTimeWindow：时间窗口调节参数，默认是 0
+                        // misfireThreshold： 超过这个时间还未触发的 trigger，被认为发生了 misfire，默认 60s
+                        // 调度线程一次会拉取 NEXT_FIRETIME 小于（now + idleWaitTime +batchTimeWindow）,大于（now - misfireThreshold）的，min(availThreadCount,maxBatchSize)个 triggers，
+
+                        // 默认情况下，会拉取未来 30s、过去 60s 之间还未 fire 的 1 个 trigger
                         triggers = qsRsrcs.getJobStore().acquireNextTriggers(
                                 now + idleWaitTime, Math.min(availThreadCount, qsRsrcs.getMaxBatchSize()), qsRsrcs.getBatchTimeWindow());
                         acquiresFailed = 0;
@@ -357,7 +369,11 @@ public class QuartzSchedulerThread extends Thread {
                         }
                         if(goAhead) {
                             try {
-                                //通知jobstore 调度器将要执行获取到的trigger, 并获取对应的任务, 将trigger对应的job包装为TriggerFiredResult
+                                // 触发 Trigger，把 ACQUIRED 状态改成 EXECUTING
+                                // 如果这个 trigger 的 NEXTFIRETIME 为空，也就是未来不再触发，就将其状态改为COMPLETE
+                                // 如果trigger不允许并发执行（即Job的实现类标注了@DisallowConcurrentExecution），则将状态变为 BLOCKED，否则就将状态改为 WAITING
+
+                                // 通知jobstore 调度器将要执行获取到的trigger, 并获取对应的任务, 将trigger对应的job包装为TriggerFiredResult
                                 List<TriggerFiredResult> res = qsRsrcs.getJobStore().triggersFired(triggers);
                                 if(res != null)
                                     bndles = res;
@@ -375,6 +391,7 @@ public class QuartzSchedulerThread extends Thread {
 
                         }
 
+                        // 循环处理 Trigger
                         for (int i = 0; i < bndles.size(); i++) {
                             TriggerFiredResult result =  bndles.get(i);
                             TriggerFiredBundle bndle =  result.getTriggerFiredBundle();

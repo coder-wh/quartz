@@ -212,7 +212,7 @@ public class QuartzScheduler implements RemotableQuartzScheduler {
             addInternalJobListener((JobListener)resources.getJobStore());
         }
 
-        //创建一个最终执行调度的线程
+        //创建一个最终执行调度的线程   调度线程
         this.schedThread = new QuartzSchedulerThread(this, resources);
         ThreadExecutor schedThreadExecutor = resources.getThreadExecutor();
         schedThreadExecutor.execute(this.schedThread);
@@ -543,11 +543,13 @@ public class QuartzScheduler implements RemotableQuartzScheduler {
             resources.getJobStore().schedulerResumed();
         }
 
+        //启动调度器线程  使之不再暂停
         schedThread.togglePause(false);
 
         getLog().info(
                 "Scheduler " + resources.getUniqueIdentifier() + " started.");
-        
+
+        //通知调度器的监听器运行
         notifySchedulerListenersStarted();
     }
 
@@ -855,6 +857,7 @@ public class QuartzScheduler implements RemotableQuartzScheduler {
 
         //存储job 和 trigger
         resources.getJobStore().storeJobAndTrigger(jobDetail, trig);
+        // 通知相关的 Listener
         notifySchedulerListenersJobAdded(jobDetail);
         notifySchedulerThread(trigger.getNextFireTime().getTime());
         notifySchedulerListenersSchduled(trigger);

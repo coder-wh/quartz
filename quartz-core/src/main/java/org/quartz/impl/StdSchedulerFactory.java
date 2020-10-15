@@ -626,10 +626,15 @@ public class StdSchedulerFactory implements SchedulerFactory {
             throw initException;
         }
 
+        // 存储任务信息的 JobStore
         JobStore js = null;
+        // 创建线程池，默认是 SimpleThreadPool
         ThreadPool tp = null;
+        // 创建调度器
         QuartzScheduler qs = null;
+        // 连接数据库的连接管理器
         DBConnectionManager dbMgr = null;
+        // 自动生成 ID
         String instanceIdGeneratorClass = null;
         Properties tProps = null;
         String userTXLocation = null;
@@ -639,6 +644,7 @@ public class StdSchedulerFactory implements SchedulerFactory {
         long dbFailureRetry = 15000L; // 15 secs
         String classLoadHelperClass;
         String jobFactoryClass;
+        // 创建调度器线程执行器，默认为 DefaultThreadExecutor
         ThreadExecutor threadExecutor;
 
 
@@ -1343,7 +1349,8 @@ public class StdSchedulerFactory implements SchedulerFactory {
             for (int i = 0; i < plugins.length; i++) {
                 rsrcs.addSchedulerPlugin(plugins[i]);
             }
-    
+
+            //创建一个调度器
             qs = new QuartzScheduler(rsrcs, idleWaitTime, dbFailureRetry);
             qsInited = true;
     
@@ -1583,6 +1590,7 @@ public class StdSchedulerFactory implements SchedulerFactory {
             initialize();
         }
 
+        // 这个类是一个 HashMap，用来基于调度器的名称保证调度器的唯一性
         SchedulerRepository schedRep = SchedulerRepository.getInstance();
 
         //查找是否已经存在同名的调度器
