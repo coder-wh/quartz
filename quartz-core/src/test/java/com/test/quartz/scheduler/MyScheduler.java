@@ -1,8 +1,11 @@
 package com.test.quartz.scheduler;
 
 import com.test.quartz.job.MyJob1;
+import com.test.quartz.job.MyJob2;
 import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
+
+import java.util.HashSet;
 
 public class MyScheduler {
 	public static void main(String[] args) throws SchedulerException {
@@ -12,15 +15,23 @@ public class MyScheduler {
 		// JobDetail
 		JobDetail jobDetail = JobBuilder.newJob(MyJob1.class)
 				.withIdentity(jobName, jobGroupName)
-				.usingJobData("moon",5.21F)
+				.usingJobData("moon","light")
 				.build();
 
 		// Trigger
 		Trigger trigger = TriggerBuilder.newTrigger()
-				.withIdentity("trigger1", "group1")
+				.withIdentity("trigger", "group1")
 				.startNow()
 				.withSchedule(SimpleScheduleBuilder.simpleSchedule()
 						.withIntervalInSeconds(2)
+						.repeatForever())
+				.build();
+		// trigger1
+		Trigger trigger1 = TriggerBuilder.newTrigger()
+				.withIdentity("trigger1", "group1")
+				.startNow()
+				.withSchedule(SimpleScheduleBuilder.simpleSchedule()
+						.withIntervalInSeconds(5)
 						.repeatForever())
 				.build();
 
@@ -31,7 +42,10 @@ public class MyScheduler {
 		Scheduler scheduler = factory.getScheduler();
 
 		// 绑定关系是1：N
-		scheduler.scheduleJob(jobDetail, trigger);
+		scheduler.scheduleJob(jobDetail, new HashSet<Trigger>(){{
+			add(trigger);
+			add(trigger1);
+		}},true);
 		scheduler.start();
 
 

@@ -19,7 +19,7 @@ public class MyJob2 implements Job {
         Date date = new Date();
         SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         try {
-            System.out.println(" " + sf.format(date) + "   》》》》任务2开始执行了，需要15秒");
+            System.out.println(jobExecutionContext.getTrigger().getKey().getName() + " 在 " + sf.format(date) + "   》》》》任务2开始执行了，需要15秒");
             TimeUnit.SECONDS.sleep(15);
         } catch (InterruptedException e) {
             e.printStackTrace();

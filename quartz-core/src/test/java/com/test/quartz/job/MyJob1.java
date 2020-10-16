@@ -10,13 +10,13 @@ import java.util.Date;
 
 public class MyJob1 implements Job {
 
-	public void execute(JobExecutionContext context) throws JobExecutionException {
-		Date date = new Date();
+    public void execute(JobExecutionContext context) throws JobExecutionException {
+        Date date = new Date();
         SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-		JobDataMap dataMap = context.getJobDetail().getJobDataMap();
-		System.out.println( " " + sf.format(date) + " 任务1执行了，" + dataMap.getString("moon"));
-		
-	}
+        JobDataMap dataMap = context.getJobDetail().getJobDataMap();
+        System.out.println(context.getTrigger().getKey().getName() + " 在 " + sf.format(date) + " 任务1执行了，" + dataMap.getString("moon"));
+
+    }
 
 }
